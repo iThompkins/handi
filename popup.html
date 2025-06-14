@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Mobile Camera Clipboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <style>
+    body { font-family: sans-serif; width: 300px; padding: 1em; }
+    #qr { width: 100%; margin: 1em 0; }
+    #status { color: green; }
+  </style>
+</head>
+<body>
+  <h2>Connect Your Phone</h2>
+  <div id="peerid"></div>
+  <canvas id="qr" width="256" height="256"></canvas>
+  <p>Scan this QR code with your phone</p>
+  <div id="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
+

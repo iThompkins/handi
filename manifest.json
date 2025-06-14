@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Mobile Camera Clipboard",
+  "description": "Paste images from your phone camera into any input.",
+  "version": "1.0",
+  "permissions": [
+    "clipboardWrite",
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}
+
