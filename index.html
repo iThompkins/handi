@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Send Camera to Desktop</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <style>
+    body { font-family: sans-serif; }
+    video, canvas { width: 100%; max-width: 400px; margin: 1em 0; }
+    button { margin: 0.5em; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <h2>Send Camera to Desktop</h2>
+  <video id="video" autoplay playsinline></video><br>
+  <button id="flip">Flip Camera</button>
+  <button id="shot">Screenshot</button>
+  <button id="clip">Send 3s Clip</button>
+  <div id="status"></div>
+  <script>
+    // PeerJS connect
+    const urlParams = new URLSearchParams(window.location.search);
+    const peerId = urlParams.get('peer');
+    const peer = new Peer();
+    let conn;
+    peer.on('open', () => {
+      conn = peer.connect(peerId);
+      conn.on('open', () => {
+        document.getElementById('status').innerText = "Connected to desktop!";
+      });
+    });
+
+    // Camera logic
+    let facing = "environment";
+    let stream;
+    const video = document.getElementById('video');
+
+    async function startCamera() {
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+      }
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { exact: facing } }, audio: false
+      });
+      video.srcObject = stream;
+    }
+    startCamera();
+
+    // Flip camera
+    document.getElementById('flip').onclick = async () => {
+      facing = (facing === "user") ? "environment" : "user";
+      startCamera();
+    };
+
+    // Screenshot
+    document.getElementById('shot').onclick = () => {
+      let canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      let ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      let dataURL = canvas.toDataURL('image/png');
+      conn.send({ type: "image", data: dataURL });
+    };
+
+    // Video clip (3s)
+    document.getElementById('clip').onclick = () => {
+      let recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+      let chunks = [];
+      recorder.ondataavailable = e => chunks.push(e.data);
+      recorder.onstop = () => {
+        let blob = new Blob(chunks, { type: "video/webm" });
+        let reader = new FileReader();
+        reader.onloadend = () => {
+          conn.send({ type: "video", data: reader.result });
+        };
+        reader.readAsDataURL(blob);
+      };
+      recorder.start();
+      setTimeout(() => recorder.stop(), 3000);
+    };
+  </script>
+</body>
+</html>
+
